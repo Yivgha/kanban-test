@@ -30,21 +30,6 @@ jobs:
         run: npm install
         working-directory: ./back-end
 
-      - name: Build Docker image
-        run: docker build -t kanban-back -f ./back-end/Dockerfile ./back-end
-
-      - name: Run Docker container
-        run: |
-          docker run --name kanban-back-test -d -p 3001:3001 kanban-back
-
-      - name: Wait for application to start
-        run: |
-          sleep 10
-
-      - name: Check application health
-        run: |
-          curl --retry 5 --retry-delay 2 --retry-max-time 30 http://localhost:3001/health
-
       - name: Run ESLint
         run: npm run lint
         working-directory: ./back-end

@@ -14,5 +14,9 @@
   "description": "",
   "dependencies": {
     "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.11.1",
+    "prettier": "^3.3.3"
   }
 }

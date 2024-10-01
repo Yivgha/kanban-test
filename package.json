@@ -15,10 +15,14 @@
   },
   "lint-staged": {
     "back-end/**/*.{js,ts,mjs}": [
-      "cd back-end && npm run lint && npm run prettier -- --write && echo 'Back-end is great!'"
+      "npm run lint --prefix back-end",
+      "npm exec --prefix back-end prettier",
+      "echo 'Back-end is great!'"
     ],
     "front-end/**/*.{js,ts,jsx,tsx}": [
-      "cd front-end && npm run lint && npm run prettier -- --write && echo 'Front-end is pretty!'"
+      "npm run lint --prefix front-end",
+      "npm exec --prefix front-end prettier",
+      "echo 'Front-end is pretty!'"
     ]
   }
 }

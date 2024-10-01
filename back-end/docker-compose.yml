@@ -6,8 +6,6 @@ services:
       - '3001:3001'
     env_file:
       - ../.env
-    depends_on:
-      - db
     networks:
       - app-network
 
@@ -38,4 +36,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-

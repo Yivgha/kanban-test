@@ -1,0 +1,71 @@
+name: Code Quality Check
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.9.0'
+
+      - name: Cache Node.js modules (back-end)
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-backend-${{ hashFiles('back-end/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-backend-
+
+      - name: Install back-end dependencies
+        run: npm install --include=dev
+        working-directory: ./back-end
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./back-end
+
+      - name: Run Prettier
+        run: npm run prettier
+        working-directory: ./back-end
+
+  lint-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.9.0'
+
+      - name: Cache Node.js modules (front-end)
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-frontend-${{ hashFiles('front-end/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-frontend-
+
+      - name: Install front-end dependencies
+        run: npm install --include=dev
+        working-directory: ./front-end
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./front-end
+
+      - name: Run Prettier
+        run: npm run prettier
+        working-directory: ./front-end

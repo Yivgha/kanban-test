@@ -5,4 +5,7 @@ COPY . .
 RUN npm install -g nodemon
 RUN npm install
 
-CMD ["npm", "run", "start"]
+COPY wait-for-it.sh /usr/local/bin/wait-for-it
+RUN chmod +x /usr/local/bin/wait-for-it
+
+CMD ["wait-for-it", "db:5432", "--", "npm", "run", "start"]

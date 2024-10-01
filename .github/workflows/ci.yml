@@ -1,0 +1,89 @@
+name: Code Quality Check
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.9.0'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('back-end/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./back-end
+
+      - name: Build Docker image
+        run: docker build -t kanban-back -f ./back-end/Dockerfile ./back-end
+
+      - name: Run Docker container
+        run: |
+          docker run --name kanban-back-test -d -p 3001:3001 kanban-back
+
+      - name: Wait for application to start
+        run: |
+          sleep 10
+
+      - name: Check application health
+        run: |
+          curl --retry 5 --retry-delay 2 --retry-max-time 30 http://localhost:3001/health
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./back-end
+
+      - name: Run Prettier
+        run: npm run prettier
+        working-directory: ./back-end
+
+      - name: Stop and remove Docker container
+        run: docker stop kanban-back-test && docker rm kanban-back-test
+
+  lint-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.9.0'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('front-end/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./front-end
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./front-end
+
+      - name: Run Prettier
+        run: npm run prettier
+        working-directory: ./front-end

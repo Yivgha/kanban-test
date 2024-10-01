@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "dev": "nodemon server.js"
+    "start": "nodemon server.mjs",
+    "dev": "nodemon server.mjs",
+    "lint": "eslint . --config ../eslint.config.mjs",
+    "lint:fix": "eslint . --fix --config ../eslint.config.mjs",
+    "prettier": "prettier --check . --config ../.prettierrc",
+    "prettier:fix": "prettier --write . --config ../.prettierrc"
   },
   "keywords": [],
   "author": "",
@@ -22,8 +26,6 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.4",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "ts-node": "^10.9.2"
   }
 }
-

@@ -18,17 +18,33 @@ jobs:
         with:
           node-version: '22.9.0'
 
-      - name: Cache Node.js modules
+      - name: Cache Node.js modules (root)
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('back-end/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Cache Node.js modules (back-end)
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-backend-${{ hashFiles('back-end/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-backend-
+
+      - name: Install back-end dependencies
         run: npm install
         working-directory: ./back-end
+
+      - name: Install global dependencies
+        run: npm ci -g
+        working-directory: .
 
       - name: Run ESLint
         run: npm run lint
@@ -53,16 +69,16 @@ jobs:
         with:
           node-version: '22.9.0'
 
-      - name: Cache Node.js modules
+      - name: Cache Node.js modules (front-end)
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('front-end/package-lock.json') }}
+          key: ${{ runner.os }}-node-frontend-${{ hashFiles('front-end/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node-frontend-
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install front-end dependencies
+        run: npm ci
         working-directory: ./front-end
 
       - name: Run ESLint

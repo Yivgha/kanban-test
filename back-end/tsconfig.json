@@ -3,6 +3,6 @@
   "compilerOptions": {
     "outDir": "./dist"
   },
-  "include": ["*.ts"],
+  "include": ["src/**/*", "typeorm.config.ts"],
   "exclude": ["node_modules"]
 }

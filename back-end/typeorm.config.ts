@@ -1,31 +1,29 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import dotenv from 'dotenv';
+import { Task } from './src/entities/Task';
 
 dotenv.config({ path: '../.env' });
 
-type BaseDatabaseConfig = {
-  type: 'postgres';
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  database: string;
-};
-
-const baseDataSourceConfig: BaseDatabaseConfig = {
+export const baseDataSourceConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.PGHOST as string,
   port: parseInt(process.env.PGPORT as string, 10),
   username: process.env.PGUSER as string,
   password: process.env.PGPASSWORD as string,
   database: process.env.PGDATABASE as string,
+  synchronize: false,
+  entities: [Task],
+  migrations: ['./src/migrations/*.ts'],
 };
+
+// Create the DataSource instance that will be exported for migrations
+export const AppDataSource = new DataSource(baseDataSourceConfig);
 
 // Function to check if a database exists
 const checkDatabaseExists = async (dbName: string): Promise<boolean> => {
   const tempDataSource = new DataSource({
     ...baseDataSourceConfig,
-    database: 'postgres', // Connect to the default database
+    database: 'postgres',
   } as DataSourceOptions);
 
   try {
@@ -47,7 +45,7 @@ const checkDatabaseExists = async (dbName: string): Promise<boolean> => {
   }
 };
 
-export const createDBIfNotExists = async (dbName: string): Promise<void> => {
+const createDBIfNotExists = async (dbName: string): Promise<void> => {
   const exists = await checkDatabaseExists(dbName);
 
   if (exists) {
@@ -58,7 +56,7 @@ export const createDBIfNotExists = async (dbName: string): Promise<void> => {
   const tempDataSource = new DataSource({
     ...baseDataSourceConfig,
     database: 'postgres',
-  } as DataSourceOptions);
+  });
 
   try {
     await tempDataSource.initialize();
@@ -76,22 +74,25 @@ export const createDBIfNotExists = async (dbName: string): Promise<void> => {
   }
 };
 
+// Initialize the AppDataSource after ensuring the database exists
 export const initializeAppDataSource = async (): Promise<DataSource | null> => {
   try {
-    await createDBIfNotExists(baseDataSourceConfig.database);
-
-    const dataSource = new DataSource({
-      ...baseDataSourceConfig,
-    } as DataSourceOptions);
-
-    await dataSource.initialize();
+    await createDBIfNotExists(baseDataSourceConfig.database as string);
+    await AppDataSource.initialize();
     console.log('Database connection established successfully');
-
-    return dataSource;
+    return AppDataSource;
   } catch (error) {
-    console.error(
-      `Failed to connect to PostgreSQL server: ${error instanceof Error ? error.message : error}`
-    );
+    console.error('Failed to initialize data source:', error);
     return null;
+  }
+};
+
+export const runMigrations = async (): Promise<void | null> => {
+  try {
+    await AppDataSource.runMigrations();
+    console.log('Migrations ran successfully.');
+  } catch (error) {
+    console.error('Error running migrations:', error);
+    return;
   }
 };

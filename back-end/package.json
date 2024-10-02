@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "watch": "tsc --watch",
     "start": "node ./dist/server.js",
     "dev": "nodemon",
@@ -11,7 +11,8 @@
     "lint": "eslint . --config eslint.config.mjs",
     "lint:fix": "eslint . --fix --config eslint.config.mjs",
     "prettier": "prettier --check . --config ../.prettierrc",
-    "prettier:fix": "prettier --write . --config ../.prettierrc"
+    "prettier:fix": "prettier --write . --config ../.prettierrc",
+    "typeorm": "typeorm-ts-node-commonjs"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +40,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.9.0",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

@@ -1,24 +1,21 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initializeAppDataSource } from './typeorm.config';
+import { initializeAppDataSource, runMigrations } from './typeorm.config';
+import tasksRouter from './src/routes/tasks';
 
 dotenv.config({ path: '../.env' });
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
+app.use('/api/tasks', tasksRouter);
 
 async function startServer(): Promise<void> {
-  const AppDataSource = await initializeAppDataSource();
+  await initializeAppDataSource();
 
-  if (!AppDataSource) {
-    console.error('Failed to initialize AppDataSource');
-    return;
-  }
-
-  app.get('/', (req: Request, res: Response) => {
-    res.send('Hello, world! Test 1.1.5');
-  });
+  await runMigrations();
 
   const port: number = parseInt(process.env.PORT as string) || 3000;
 
@@ -28,3 +25,7 @@ async function startServer(): Promise<void> {
 }
 
 startServer();
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello, world! Test 1.1.8');
+});

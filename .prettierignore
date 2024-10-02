@@ -1,4 +1,4 @@
 node_modules/
 dist/
 build/
-back-end/migrations
+back-end/src/migrations

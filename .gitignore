@@ -47,3 +47,4 @@ pids
 
 # TS files compiled
 dist/
+build/

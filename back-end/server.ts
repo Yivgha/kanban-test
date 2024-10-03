@@ -7,7 +7,11 @@ import tasksRouter from './src/routes/tasks';
 dotenv.config({ path: '../.env' });
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: ['http://localhost:3000', '*'],
+  })
+);
 app.use(express.json());
 
 app.use('/api/tasks', tasksRouter);
@@ -27,5 +31,5 @@ async function startServer(): Promise<void> {
 startServer();
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, world! Test 1.1.8');
+  res.send('Hello, world! Test 1.1.9');
 });

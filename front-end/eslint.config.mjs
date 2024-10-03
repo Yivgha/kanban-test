@@ -2,9 +2,6 @@ import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const compat = new FlatCompat();
 
 export default [
   // Frontend-specific configuration
@@ -30,9 +27,14 @@ export default [
         version: 'detect',
       },
     },
-    rules: {},
-    ...compat.extends('plugin:react/recommended'),
-    ...compat.extends('plugin:@typescript-eslint/recommended'),
-    'prettier/prettier': 'warn',
+    rules: {
+      'prettier/prettier': 'warn',
+    },
+    extends: [
+      'plugin:react/recommended',
+      'plugin:@typescript-eslint/recommended',
+      'plugin:prettier/recommended',
+      'react-app',
+    ],
   },
 ];

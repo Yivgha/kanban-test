@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: '22.9.0'
 
+      - name: Install dependencies (root)
+        run: npm install --include=dev
+
       - name: Cache Node.js modules (root)
         uses: actions/cache@v3
         with:
@@ -25,9 +28,6 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-
-      - name: Install dependencies (root)
-        run: npm install --include=dev
 
       - name: Run ESLint for back-end
         run: |

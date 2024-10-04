@@ -1,0 +1,16 @@
+version: '3'
+services:
+  frontend:
+    build: .
+    ports:
+      - '80:80'
+    networks:
+      - app-network
+    env_file:
+      - .env
+    environment:
+      - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
+
+networks:
+  app-network:
+    driver: bridge

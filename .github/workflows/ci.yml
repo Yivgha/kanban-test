@@ -6,7 +6,7 @@ on:
       - '**'
 
 jobs:
-  lint-backend:
+  lint-and-prettier:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,54 +18,30 @@ jobs:
         with:
           node-version: '22.9.0'
 
-      - name: Cache Node.js modules (back-end)
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-backend-${{ hashFiles('back-end/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-backend-
+      - name: Remove installed dependencies
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
 
-      - name: Install back-end dependencies
+      - name: Install dependencies (root)
         run: npm install --include=dev
-        working-directory: ./back-end
 
-      - name: Run ESLint
-        run: npm run lint
-        working-directory: ./back-end
+      - name: Run ESLint for back-end
+        run: |
+          npx eslint 'back-end/**/*.{js,ts,mjs,jsx,tsx}' --config eslint.config.mjs
+        working-directory: .
 
-      - name: Run Prettier
-        run: npm run prettier
-        working-directory: ./back-end
+      - name: Run Prettier for back-end
+        run: |
+          npx prettier --check 'back-end/**/*.{js,ts,mjs}' --config .prettierrc
+        working-directory: .
 
-  lint-frontend:
-    runs-on: ubuntu-latest
+      - name: Run ESLint for front-end
+        run: |
+          npx eslint 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config eslint.config.mjs
+        working-directory: .
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22.9.0'
-
-      - name: Cache Node.js modules (front-end)
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-frontend-${{ hashFiles('front-end/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-frontend-
-
-      - name: Install front-end dependencies
-        run: npm install --include=dev
-        working-directory: ./front-end
-
-      - name: Run ESLint
-        run: npm run lint
-        working-directory: ./front-end
-
-      - name: Run Prettier
-        run: npm run prettier
-        working-directory: ./front-end
+      - name: Run Prettier for front-end
+        run: |
+          npx prettier --check 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config .prettierrc
+        working-directory: .

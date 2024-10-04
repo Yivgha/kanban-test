@@ -18,6 +18,11 @@ jobs:
         with:
           node-version: '22.9.0'
 
+      - name: Remove installed dependencies
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
       - name: Cache Node.js modules (root)
         uses: actions/cache@v3
         with:
@@ -31,20 +36,20 @@ jobs:
 
       - name: Run ESLint for back-end
         run: |
-          npx eslint 'back-end/**/*.{js,ts,mjs,jsx,tsx}' --config eslint.config.mjs --fix
+          npx eslint 'back-end/**/*.{js,ts,mjs,jsx,tsx}' --config eslint.config.mjs
         working-directory: .
 
       - name: Run Prettier for back-end
         run: |
-          npx prettier --write 'back-end/**/*.{js,ts,mjs}' --config .prettierrc
+          npx prettier --check 'back-end/**/*.{js,ts,mjs}' --config .prettierrc
         working-directory: .
 
       - name: Run ESLint for front-end
         run: |
-          npx eslint 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config eslint.config.mjs --fix
+          npx eslint 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config eslint.config.mjs
         working-directory: .
 
       - name: Run Prettier for front-end
         run: |
-          npx prettier --write 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config .prettierrc
+          npx prettier --check 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config .prettierrc
         working-directory: .

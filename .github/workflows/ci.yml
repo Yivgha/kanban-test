@@ -18,16 +18,13 @@ jobs:
         with:
           node-version: '22.9.0'
 
+      - name: Remove installed dependencies
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
       - name: Install dependencies (root)
         run: npm install --include=dev
-
-      - name: Cache Node.js modules (root)
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Run ESLint for back-end
         run: |

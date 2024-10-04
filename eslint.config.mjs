@@ -3,6 +3,7 @@ import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import eslintPluginReact from 'eslint-plugin-react';
+import typescriptParser from '@typescript-eslint/parser';
 
 export default defineConfig([
   // Global ignores
@@ -17,7 +18,7 @@ export default defineConfig([
       globals: {
         ...globals.node,
       },
-      parser: '@typescript-eslint/parser',
+      parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
@@ -31,6 +32,7 @@ export default defineConfig([
       'prettier/prettier': 'warn',
     },
   },
+
   // Frontend-specific configuration
   {
     files: ['./front-end/**/*.{js,mjs,cjs,ts,jsx,tsx}'],
@@ -38,7 +40,7 @@ export default defineConfig([
       globals: {
         ...globals.browser,
       },
-      parser: '@typescript-eslint/parser',
+      parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
@@ -52,6 +54,26 @@ export default defineConfig([
     rules: {
       'prettier/prettier': 'warn',
       'react/react-in-jsx-scope': 'off',
+    },
+  },
+
+  // Add a general config to handle all other files
+  {
+    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      prettier: eslintPluginPrettier,
+      react: eslintPluginReact,
+    },
+    rules: {
+      'prettier/prettier': 'warn',
     },
   },
 ]);

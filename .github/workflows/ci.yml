@@ -28,7 +28,7 @@ jobs:
 
       - name: Run ESLint for back-end
         run: |
-          npx eslint 'back-end/**/*.{js,ts,mjs,jsx,tsx}' --config eslint.config.mjs
+          npx eslint 'back-end/**/*.{js,ts,mjs}' --config eslint.config.mjs
         working-directory: .
 
       - name: Run Prettier for back-end

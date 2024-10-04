@@ -5,20 +5,22 @@ import { RootState, AppDispatch } from '../redux/store';
 
 const TaskList: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { tasks, status } = useSelector((state: RootState) => state.tasks);
+  const { tasks, loadingStatus } = useSelector(
+    (state: RootState) => state.tasks
+  );
 
   useEffect(() => {
     dispatch(fetchTasks());
   }, [dispatch]);
 
-  if (status === 'loading') return <p>Loading...</p>;
-  if (status === 'failed') return <p>Failed to load tasks.</p>;
+  if (loadingStatus === 'loading') return <p>Loading...</p>;
+  if (loadingStatus === 'failed') return <p>Failed to load tasks.</p>;
 
   return (
     <ul>
       {tasks.map((task) => (
         <li key={task.id}>
-          {task.title} - {task.description}
+          {task.title} - {task.description} - {task.status}
         </li>
       ))}
     </ul>

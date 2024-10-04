@@ -13,7 +13,7 @@ export const baseDataSourceConfig: DataSourceOptions = {
   database: process.env.PGDATABASE as string,
   synchronize: false,
   entities: [Task],
-  migrations: ['./dist/src/migrations/*.js'],
+  migrations: ['dist/src/migrations/*.js'],
 };
 
 // Create the DataSource instance that will be exported for migrations

@@ -4,16 +4,17 @@ interface Task {
   id: number;
   title: string;
   description: string;
+  status: string;
 }
 
 interface TaskState {
   tasks: Task[];
-  status: 'idle' | 'loading' | 'failed';
+  loadingStatus: 'idle' | 'loading' | 'failed';
 }
 
 const initialState: TaskState = {
   tasks: [],
-  status: 'idle',
+  loadingStatus: 'idle',
 };
 
 export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
@@ -30,14 +31,14 @@ const taskSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchTasks.pending, (state) => {
-        state.status = 'loading';
+        state.loadingStatus = 'loading';
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.status = 'idle';
+        state.loadingStatus = 'idle';
         state.tasks = action.payload;
       })
       .addCase(fetchTasks.rejected, (state) => {
-        state.status = 'failed';
+        state.loadingStatus = 'failed';
       });
   },
 });

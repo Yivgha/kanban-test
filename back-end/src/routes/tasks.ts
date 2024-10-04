@@ -3,8 +3,8 @@ import {
   getTasks,
   getTaskById,
   createTask,
-  deleteTask,
   editTask,
+  deleteTask,
 } from '../handlers/tasks';
 
 const taskRouter = Router();

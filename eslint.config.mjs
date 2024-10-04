@@ -2,9 +2,6 @@ import { defineConfig } from 'eslint-define-config';
 import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const compat = new FlatCompat();
 
 export default defineConfig([
   // Global ignores

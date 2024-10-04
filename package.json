@@ -34,7 +34,7 @@
       "prettier --write --config ./.prettierrc",
       "echo 'Back-end is great!'"
     ],
-    "front-end/**/*.{js,ts,mjs}": [
+    "front-end/**/*.{js,ts,mjs,tsx,jsx,cjs}": [
       "eslint --config eslint.config.mjs --fix",
       "prettier --write --config ./.prettierrc",
       "echo 'Front-end is pretty!'"

@@ -31,7 +31,7 @@ jobs:
 
       - name: Run ESLint for back-end
         run: |
-          npx eslint 'back-end/**/*.{js,ts,mjs}' --config eslint.config.mjs --fix
+          npx eslint 'back-end/**/*.{js,ts,mjs,jsx,tsx}' --config eslint.config.mjs --fix
         working-directory: .
 
       - name: Run Prettier for back-end
@@ -41,10 +41,10 @@ jobs:
 
       - name: Run ESLint for front-end
         run: |
-          npx eslint 'front-end/**/*.{js,ts,mjs}' --config eslint.config.mjs --fix
+          npx eslint 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config eslint.config.mjs --fix
         working-directory: .
 
       - name: Run Prettier for front-end
         run: |
-          npx prettier --write 'front-end/**/*.{js,ts,mjs}' --config .prettierrc
+          npx prettier --write 'front-end/**/*.{js,ts,mjs,jsx,tsx,cjs}' --config .prettierrc
         working-directory: .

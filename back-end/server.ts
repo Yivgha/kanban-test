@@ -9,7 +9,8 @@ dotenv.config({ path: '../.env' });
 const app = express();
 app.use(
   cors({
-    origin: ['http://localhost:3000', '*'],
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
   })
 );
 app.use(express.json());
@@ -31,5 +32,5 @@ async function startServer(): Promise<void> {
 startServer();
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, world! Test 1.1.9');
+  res.send('Hello, world! Test 1.1.12');
 });

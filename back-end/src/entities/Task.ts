@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { TaskStatus } from '../enums/task.enum';
+import { TaskStatus } from '../enums/TaskStatus.enum';
 
 interface ITask {
   id?: number;

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../../typeorm.config';
 import { Task } from '../entities/Task';
-import { TaskStatus } from '../enums/task.enum';
+import { TaskStatus } from '../enums/TaskStatus.enum';
 
 interface NewTask {
   title: string;

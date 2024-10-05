@@ -1,6 +1,7 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import dotenv from 'dotenv';
 import { Task } from './src/entities/Task';
+import { Status } from './src/entities/TaskStatus';
 
 dotenv.config({ path: '../.env' });
 
@@ -12,7 +13,7 @@ export const baseDataSourceConfig: DataSourceOptions = {
   password: process.env.PGPASSWORD as string,
   database: process.env.PGDATABASE as string,
   synchronize: false,
-  entities: [Task],
+  entities: [Task, Status],
   migrations: ['dist/src/migrations/*.js'],
 };
 

@@ -128,49 +128,11 @@ const TaskBoard = () => {
     await dispatch(fetchTasks());
   };
 
-  const handleAddTask = async (status: TaskStatuses) => {
+  const handleTaskSubmit = async (status: TaskStatuses) => {
     if (newTaskTitle.trim() === '' || newTaskDescription.trim() === '') {
       return;
     }
 
-    const newTask: Omit<Task, 'id'> = {
-      title: newTaskTitle,
-      description: newTaskDescription,
-      status,
-      order: 0,
-    };
-
-    await dispatch(createTask(newTask));
-
-    // Update the local state
-    setColumns((prevColumns) => {
-      const existingTasks = prevColumns[status];
-
-      const updatedExistingTasks = existingTasks.map((task) => ({
-        ...task,
-        order: task.order + 1,
-      }));
-
-      return {
-        ...prevColumns,
-        [status]: updatedExistingTasks.sort((a, b) => a.order - b.order),
-      };
-    });
-
-    setNewTaskTitle('');
-    setNewTaskDescription('');
-  };
-
-  const handleEditTask = async (id: number) => {
-    const taskToEdit = tasks.find((task) => task.id === id);
-    if (taskToEdit) {
-      setNewTaskTitle(taskToEdit.title);
-      setNewTaskDescription(taskToEdit.description);
-      setEditingTaskId(id);
-    }
-  };
-
-  const handleSaveEditedTask = async () => {
     if (editingTaskId !== null) {
       const updatedTask: Task = {
         id: editingTaskId,
@@ -183,9 +145,28 @@ const TaskBoard = () => {
 
       await dispatch(editTask(updatedTask));
 
-      setNewTaskTitle('');
-      setNewTaskDescription('');
       setEditingTaskId(null);
+    } else {
+      const newTask: Omit<Task, 'id'> = {
+        title: newTaskTitle,
+        description: newTaskDescription,
+        status,
+        order: 0,
+      };
+
+      await dispatch(createTask(newTask));
+    }
+
+    setNewTaskTitle('');
+    setNewTaskDescription('');
+  };
+
+  const handleEditTask = (id: number) => {
+    const taskToEdit = tasks.find((task) => task.id === id);
+    if (taskToEdit) {
+      setNewTaskTitle(taskToEdit.title);
+      setNewTaskDescription(taskToEdit.description);
+      setEditingTaskId(id);
     }
   };
 
@@ -212,33 +193,17 @@ const TaskBoard = () => {
             key={status.id}
             status={status}
             tasks={columns[status.name as TaskStatuses] || []}
-            onAddTask={handleAddTask}
+            onTaskSubmit={handleTaskSubmit}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
             newTaskTitle={newTaskTitle}
             setNewTaskTitle={setNewTaskTitle}
             newTaskDescription={newTaskDescription}
             setNewTaskDescription={setNewTaskDescription}
+            editingTaskId={editingTaskId}
+            setEditingTaskId={setEditingTaskId}
           />
         ))}
-        {editingTaskId !== null && (
-          <div>
-            <h4>Edit Task</h4>
-            <input
-              type="text"
-              id="edit task title"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-            />
-            <input
-              type="text"
-              id="edit task description"
-              value={newTaskDescription}
-              onChange={(e) => setNewTaskDescription(e.target.value)}
-            />
-            <button onClick={handleSaveEditedTask}>Save</button>
-          </div>
-        )}
       </div>
     </DragDropContext>
   );

@@ -1,4 +1,6 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 type TaskInputProps = {
   title: string;
@@ -7,6 +9,7 @@ type TaskInputProps = {
   setDescription: (description: string) => void;
   onSubmit: () => void;
   isEditing: boolean;
+  toggleTaskInput: () => void;
 };
 
 const TaskInput: React.FC<TaskInputProps> = ({
@@ -16,16 +19,19 @@ const TaskInput: React.FC<TaskInputProps> = ({
   setDescription,
   onSubmit,
   isEditing,
+  toggleTaskInput,
 }) => {
   return (
     <div className="add-task-card">
-      {isEditing ? (
-        <h4>Edit Task</h4>
-      ) : (
-        <div className="add-task-content">
-          <span>+</span>
-        </div>
-      )}
+      <FontAwesomeIcon
+        icon={faTimes}
+        className="close-icon"
+        onClick={toggleTaskInput}
+        title="Close"
+      />
+      <h4 className="task-input-title">
+        {isEditing ? 'Edit Task' : 'Add Task'}
+      </h4>
       <input
         type="text"
         placeholder="Task Title"
@@ -39,7 +45,7 @@ const TaskInput: React.FC<TaskInputProps> = ({
         onChange={(e) => setDescription(e.target.value)}
       />
       <button onClick={onSubmit} className="submit-task-button">
-        {isEditing ? 'Save' : 'Add Task'}
+        {isEditing ? 'Save' : 'Add'}
       </button>
     </div>
   );

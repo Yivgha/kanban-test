@@ -58,7 +58,17 @@ const taskSlice = createSlice({
         state.loadingStatus = 'failed';
       })
       .addCase(createTask.fulfilled, (state, action) => {
-        state.tasks.push(action.payload);
+        const newTask = action.payload;
+        newTask.order = 0;
+
+        state.tasks = state.tasks.map((task) => {
+          if (task.status === TaskStatuses.TODO) {
+            return { ...task, order: task.order + 1 };
+          }
+          return task;
+        });
+
+        state.tasks.unshift(newTask);
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.tasks = state.tasks.filter((task) => task.id !== action.payload);

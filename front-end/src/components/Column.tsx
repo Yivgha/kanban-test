@@ -1,25 +1,55 @@
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { TaskStatuses } from '../constants/TaskStatuses.enum';
 import TaskCard from './TaskCard';
+import TaskInput from './TaskInput';
+import { useState } from 'react';
 
 const Column = ({
   status,
   tasks,
-  onAddTask,
+  onTaskSubmit,
   onEditTask,
   onDeleteTask,
   newTaskTitle,
   setNewTaskTitle,
   newTaskDescription,
   setNewTaskDescription,
+  editingTaskId,
+  setEditingTaskId,
 }) => {
-  const handleAddTask = () => {
-    if (newTaskTitle.trim() && newTaskDescription.trim()) {
-      onAddTask(status.name);
+  const [isTaskInputVisible, setTaskInputVisible] = useState(false);
 
-      setNewTaskTitle('');
-      setNewTaskDescription('');
+  const clearFields = () => {
+    setNewTaskTitle('');
+    setNewTaskDescription('');
+    setEditingTaskId(null);
+  };
+
+  const handleSubmit = () => {
+    if (editingTaskId !== null) {
+      onEditTask(editingTaskId);
     }
+    onTaskSubmit(status.name);
+
+    setTaskInputVisible(false);
+    clearFields();
+  };
+
+  const toggleTaskInput = (taskId: number | null) => {
+    if (taskId === null) {
+      setTaskInputVisible(true);
+      clearFields();
+    } else {
+      setTaskInputVisible(false);
+      // Populate the fields for editing
+      const taskToEdit = tasks.find((task) => task.id === taskId);
+      setNewTaskTitle(taskToEdit?.title || '');
+      setNewTaskDescription(taskToEdit?.description || '');
+    }
+  };
+
+  const handleClose = () => {
+    setTaskInputVisible(false);
+    clearFields();
   };
 
   return (
@@ -31,6 +61,7 @@ const Column = ({
           className="column"
         >
           <h3 className="column-title">{status.name}</h3>
+
           {tasks.length === 0 ? (
             <p className="no-tasks-msg">No tasks here</p>
           ) : (
@@ -50,7 +81,19 @@ const Column = ({
                       task={task}
                       onEdit={onEditTask}
                       onDelete={onDeleteTask}
+                      toggleTaskInput={() => toggleTaskInput(task.id)}
                     />
+                    {editingTaskId === task.id && (
+                      <TaskInput
+                        title={newTaskTitle}
+                        description={newTaskDescription}
+                        setTitle={setNewTaskTitle}
+                        setDescription={setNewTaskDescription}
+                        onSubmit={handleSubmit}
+                        isEditing={true}
+                        toggleTaskInput={handleClose}
+                      />
+                    )}
                   </div>
                 )}
               </Draggable>
@@ -58,29 +101,32 @@ const Column = ({
           )}
           {provided.placeholder}
 
-          {/* Add "To Do" column inputs and button */}
-          {status.name === TaskStatuses.TODO && (
-            <div className="add-task-card">
-              <div className="add-task-content">
-                <span>+</span>
+          {status.name === 'To Do' && (
+            <div className="add-task-wrapper">
+              <div className="add-task-card">
+                <span
+                  className="add-task-button"
+                  onClick={() => {
+                    if (!isTaskInputVisible) {
+                      handleClose();
+                    }
+                    setTaskInputVisible(true);
+                  }}
+                >
+                  {!isTaskInputVisible && '+'}
+                </span>
+                {isTaskInputVisible && (
+                  <TaskInput
+                    title={newTaskTitle}
+                    description={newTaskDescription}
+                    setTitle={setNewTaskTitle}
+                    setDescription={setNewTaskDescription}
+                    onSubmit={handleSubmit}
+                    isEditing={false}
+                    toggleTaskInput={handleClose}
+                  />
+                )}
               </div>
-              <input
-                type="text"
-                id="add task title"
-                placeholder="Task Title"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-              />
-              <input
-                type="text"
-                id="add task description"
-                placeholder="Task Description"
-                value={newTaskDescription}
-                onChange={(e) => setNewTaskDescription(e.target.value)}
-              />
-              <button onClick={handleAddTask} className="submit-task-button">
-                Add Task
-              </button>
             </div>
           )}
         </div>

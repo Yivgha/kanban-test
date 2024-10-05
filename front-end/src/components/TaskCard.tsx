@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const TaskCard = ({ task, onEdit, onDelete }) => {
+const TaskCard = ({ task, onEdit, onDelete, toggleTaskInput }) => {
   return (
     <div className="card">
       <h3>{task.title}</h3>
@@ -10,7 +10,10 @@ const TaskCard = ({ task, onEdit, onDelete }) => {
         <FontAwesomeIcon
           icon={faEdit}
           className="task-icon"
-          onClick={() => onEdit(task.id)}
+          onClick={() => {
+            onEdit(task.id);
+            toggleTaskInput(task.id);
+          }}
           title="Edit Task"
         />
         <FontAwesomeIcon

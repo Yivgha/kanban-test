@@ -7,10 +7,12 @@
 
 .column {
   width: 30%;
+  height: 80vh;
   margin-bottom: 20px;
   padding: 10px;
   background: #f4f4f4;
   border-radius: 10px;
+  overflow-y: scroll;
 }
 .column-title {
   text-align: center;
@@ -24,10 +26,7 @@
   cursor: pointer;
   height: 150px;
   border-radius: 4px;
-}
-
-.card:last-child {
-  margin-bottom: 0;
+  position: relative;
 }
 
 .no-tasks-msg {
@@ -41,4 +40,42 @@
 .info-msg {
   margin-top: 20px;
   text-align: center;
+}
+
+.add-task-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.add-task-content {
+  font-size: 2rem;
+  color: #007bff;
+}
+
+input {
+  margin: 5px 0;
+  padding: 5px;
+  width: 80%;
+}
+
+.task-actions {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+}
+
+.task-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.task-icon:last-child {
+  margin-left: 10px;
 }

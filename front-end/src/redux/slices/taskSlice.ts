@@ -1,13 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { TaskStatuses } from '../../constants/TaskStatuses.enum';
-import { fetchTasks, updateTaskStatus } from '../../api/tasks';
+import {
+  fetchTasks,
+  updateTaskStatus,
+  createTask,
+  deleteTask,
+  editTask,
+} from '../../api/tasks';
 
 export interface Task {
   id: number;
   title: string;
   description: string;
   status: TaskStatuses;
-  order: number;
+  order?: number;
 }
 
 interface TaskState {
@@ -49,6 +55,28 @@ const taskSlice = createSlice({
         }
       })
       .addCase(updateTaskStatus.rejected, (state) => {
+        state.loadingStatus = 'failed';
+      })
+      .addCase(createTask.fulfilled, (state, action) => {
+        state.tasks.push(action.payload);
+      })
+      .addCase(deleteTask.fulfilled, (state, action) => {
+        state.tasks = state.tasks.filter((task) => task.id !== action.payload);
+      })
+      .addCase(editTask.pending, (state) => {
+        state.loadingStatus = 'loading';
+      })
+      .addCase(editTask.fulfilled, (state, action) => {
+        state.loadingStatus = 'idle';
+        const updatedTask = action.payload;
+        const index = state.tasks.findIndex(
+          (task) => task.id === updatedTask.id
+        );
+        if (index !== -1) {
+          state.tasks[index] = updatedTask;
+        }
+      })
+      .addCase(editTask.rejected, (state) => {
         state.loadingStatus = 'failed';
       });
   },

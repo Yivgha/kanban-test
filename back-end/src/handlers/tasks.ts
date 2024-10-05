@@ -7,6 +7,7 @@ interface NewTask {
   title: string;
   description?: string;
   status?: TaskStatus;
+  order?: number;
 }
 
 interface TaskShow {
@@ -14,6 +15,7 @@ interface TaskShow {
   title: string;
   description?: string;
   status: TaskStatus;
+  order?: number;
 }
 
 export async function getTasks(req: Request, res: Response) {
@@ -49,7 +51,7 @@ export async function getTaskById(req: Request, res: Response) {
 
 export async function createTask(req: Request, res: Response) {
   try {
-    const { title, description, status } = req.body;
+    const { title, description, status, order } = req.body;
 
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
@@ -60,6 +62,7 @@ export async function createTask(req: Request, res: Response) {
       title,
       description,
       status,
+      order,
     });
     const result: TaskShow = await taskRepository.save(createdTask);
 

@@ -8,7 +8,9 @@
     "start": "node ./dist/server.js",
     "dev": "nodemon",
     "serve": "concurrently \"npm run watch\" \"npm run dev\"",
-    "typeorm": "typeorm-ts-node-commonjs"
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate -d ./dist/typeorm.config.js",
+    "migration:run": "npx typeorm-ts-node-commonjs migration:run -d ./dist/typeorm.config.js"
   },
   "keywords": [],
   "author": "",

@@ -1,27 +1,24 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+import { TaskStatuses } from '../../constants/TaskStatuses.enum';
+import { fetchTasks, updateTaskStatus } from '../../api/tasks';
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   description: string;
+  status: TaskStatuses;
+  order: number;
 }
 
 interface TaskState {
   tasks: Task[];
-  status: 'idle' | 'loading' | 'failed';
+  loadingStatus: 'idle' | 'loading' | 'failed';
 }
 
 const initialState: TaskState = {
   tasks: [],
-  status: 'idle',
+  loadingStatus: 'idle',
 };
-
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
-  const url = process.env.REACT_APP_BACKEND_URL;
-
-  const response = await fetch(`${url}/tasks`);
-  return (await response.json()) as Task[];
-});
 
 const taskSlice = createSlice({
   name: 'tasks',
@@ -30,14 +27,29 @@ const taskSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchTasks.pending, (state) => {
-        state.status = 'loading';
+        state.loadingStatus = 'loading';
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.status = 'idle';
+        state.loadingStatus = 'idle';
         state.tasks = action.payload;
       })
       .addCase(fetchTasks.rejected, (state) => {
-        state.status = 'failed';
+        state.loadingStatus = 'failed';
+      })
+      .addCase(updateTaskStatus.pending, (state) => {
+        state.loadingStatus = 'loading';
+      })
+      .addCase(updateTaskStatus.fulfilled, (state, action) => {
+        state.loadingStatus = 'idle';
+        const { id, status, order } = action.payload;
+        const task = state.tasks.find((task) => task.id === id);
+        if (task) {
+          task.status = status;
+          task.order = order;
+        }
+      })
+      .addCase(updateTaskStatus.rejected, (state) => {
+        state.loadingStatus = 'failed';
       });
   },
 });

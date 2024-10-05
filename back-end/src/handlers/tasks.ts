@@ -1,16 +1,19 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../../typeorm.config';
 import { Task } from '../entities/Task';
+import { TaskStatus } from '../enums/TaskStatus.enum';
 
 interface NewTask {
   title: string;
   description?: string;
+  status?: TaskStatus;
 }
 
 interface TaskShow {
   id: number;
   title: string;
   description?: string;
+  status: TaskStatus;
 }
 
 export async function getTasks(req: Request, res: Response) {
@@ -46,14 +49,18 @@ export async function getTaskById(req: Request, res: Response) {
 
 export async function createTask(req: Request, res: Response) {
   try {
-    const { title, description } = req.body;
+    const { title, description, status } = req.body;
 
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
     }
 
     const taskRepository = AppDataSource.getRepository(Task);
-    const createdTask: NewTask = taskRepository.create({ title, description });
+    const createdTask: NewTask = taskRepository.create({
+      title,
+      description,
+      status,
+    });
     const result: TaskShow = await taskRepository.save(createdTask);
 
     res.status(201).json(result);
@@ -69,7 +76,6 @@ export async function editTask(req: Request, res: Response) {
 
     if (!taskId) {
       res.status(400).json({ error: 'Id is required' });
-      return;
     }
 
     const task: Task | null = await AppDataSource.getRepository(Task).findOneBy(
@@ -80,6 +86,9 @@ export async function editTask(req: Request, res: Response) {
 
     if (!task) {
       res.status(404).json({ error: `Task with id ${taskId} not found` });
+    }
+
+    if (task == null) {
       return;
     }
 
@@ -89,7 +98,6 @@ export async function editTask(req: Request, res: Response) {
       task,
       taskUpdates
     );
-
     const result: Task =
       await AppDataSource.getRepository(Task).save(updatedTask);
 
@@ -102,9 +110,9 @@ export async function editTask(req: Request, res: Response) {
 
 export async function deleteTask(req: Request, res: Response) {
   try {
-    const task = await AppDataSource.getRepository(Task).delete(req.params.id);
+    await AppDataSource.getRepository(Task).delete(req.params.id);
 
-    res.send(task);
+    res.status(200).json({ message: `Task with id ${req.params.id} deleted!` });
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ detail: 'Internal Server Error' });

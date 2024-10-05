@@ -6,6 +6,7 @@ interface ITask {
   title: string;
   description?: string;
   status: TaskStatus;
+  order?: number;
 }
 
 @Entity('Tasks')
@@ -26,9 +27,13 @@ export class Task implements ITask {
   })
   status: TaskStatus;
 
-  constructor(title: string, description?: string) {
+  @Column({ type: 'int', nullable: true })
+  order?: number;
+
+  constructor(title: string, description?: string, order?: number) {
     this.title = title;
     this.description = description;
     this.status = TaskStatus.TODO;
+    this.order = order;
   }
 }

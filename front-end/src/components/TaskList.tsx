@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TaskStatuses } from '../constants/TaskStatuses.enum';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTasks, updateTaskStatus } from '../redux/slices/taskSlice';
+import { fetchTasks, updateTaskStatus, Task } from '../redux/slices/taskSlice';
 import { fetchStatuses } from '../redux/slices/statusSlice';
 import { RootState, AppDispatch } from '../redux/store';
 import {
@@ -10,13 +10,6 @@ import {
   Draggable,
   DropResult,
 } from 'react-beautiful-dnd';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: TaskStatuses;
-}
 
 type Columns = {
   [key in TaskStatuses]: Task[];
@@ -71,35 +64,73 @@ const TaskBoard = () => {
 
     if (!destination) return;
 
+    const sourceStatus = source.droppableId as TaskStatuses;
+    const destStatus = destination.droppableId as TaskStatuses;
+
     if (source.droppableId === destination.droppableId) {
-      const status = source.droppableId as TaskStatuses;
       const reorderedTasks = reorder(
-        columns[status],
+        columns[sourceStatus],
         source.index,
         destination.index
       );
-      setColumns({
-        ...columns,
-        [status]: reorderedTasks,
-      });
-    } else {
-      const sourceStatus = source.droppableId as TaskStatuses;
-      const destStatus = destination.droppableId as TaskStatuses;
 
+      const updatedTasks = reorderedTasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+
+      setColumns((prevColumns) => ({
+        ...prevColumns,
+        [sourceStatus]: updatedTasks,
+      }));
+
+      await Promise.all(
+        updatedTasks.map((task) =>
+          dispatch(
+            updateTaskStatus({
+              id: task.id,
+              status: sourceStatus,
+              order: task.order,
+            })
+          )
+        )
+      );
+    } else {
       const sourceTasks = Array.from(columns[sourceStatus]);
       const destTasks = Array.from(columns[destStatus]);
 
       const [movedTask] = sourceTasks.splice(source.index, 1);
+      movedTask.status = destStatus;
+      movedTask.order = destTasks.length;
 
-      setColumns({
-        ...columns,
-        [sourceStatus]: sourceTasks,
-        [destStatus]: destTasks,
-      });
+      destTasks.splice(destination.index, 0, movedTask);
 
-      await dispatch(
-        updateTaskStatus({ id: movedTask.id, status: destStatus })
-      );
+      const updatedSourceTasks = sourceTasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+
+      const updatedDestTasks = destTasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+
+      setColumns((prevColumns) => ({
+        ...prevColumns,
+        [sourceStatus]: updatedSourceTasks,
+        [destStatus]: updatedDestTasks,
+      }));
+
+      // Update the status and order in the backend
+      await Promise.all([
+        dispatch(
+          updateTaskStatus({
+            id: movedTask.id,
+            status: destStatus,
+            order: movedTask.order,
+          })
+        ),
+      ]);
     }
   };
 

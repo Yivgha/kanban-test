@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { TaskStatuses } from '../../constants/TaskStatuses.enum';
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   description: string;
   status: TaskStatuses;
+  order: number;
 }
 
 interface TaskState {
@@ -26,19 +27,27 @@ export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
 
 export const updateTaskStatus = createAsyncThunk(
   'tasks/updateTaskStatus',
-  async ({ id, status }: { id: number; status: TaskStatuses }) => {
+  async ({
+    id,
+    status,
+    order,
+  }: {
+    id: number;
+    status: TaskStatuses;
+    order: number;
+  }) => {
     const url = process.env.REACT_APP_BACKEND_URL;
     const response = await fetch(`${url}/tasks/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, order }),
     });
     if (!response.ok) {
       throw new Error('Failed to update task status');
     }
-    return { id, status };
+    return { id, status, order };
   }
 );
 
@@ -63,10 +72,11 @@ const taskSlice = createSlice({
       })
       .addCase(updateTaskStatus.fulfilled, (state, action) => {
         state.loadingStatus = 'idle';
-        const { id, status } = action.payload;
+        const { id, status, order } = action.payload;
         const task = state.tasks.find((task) => task.id === id);
         if (task) {
           task.status = status;
+          task.order = order;
         }
       })
       .addCase(updateTaskStatus.rejected, (state) => {

@@ -1,10 +1,9 @@
-import TaskList from './components/TaskList';
+import TaskBoard from './components/TaskList';
 
 function App() {
   return (
     <div className="App">
-      <p>Hello, world!!</p>
-      <TaskList />
+      <TaskBoard />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeAppDataSource, runMigrations } from './typeorm.config';
 import tasksRouter from './src/routes/tasks';
+import taskStatusesRouter from './src/routes/taskStatuses';
 
 dotenv.config({ path: '../.env' });
 
@@ -16,6 +17,7 @@ app.use(
 app.use(express.json());
 
 app.use('/api/tasks', tasksRouter);
+app.use('/api/statuses', taskStatusesRouter);
 
 async function startServer(): Promise<void> {
   await initializeAppDataSource();

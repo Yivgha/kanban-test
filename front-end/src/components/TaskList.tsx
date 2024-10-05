@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
-import { TaskStatuses } from '../constants/TaskStatuses.enum';
+import { useEffect, useMemo, useState } from 'react';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTasks, updateTaskStatus, Task } from '../redux/slices/taskSlice';
+import { Task } from '../redux/slices/taskSlice';
 import { fetchStatuses } from '../redux/slices/statusSlice';
+import { fetchTasks, updateTaskStatus } from '../api/tasks';
 import { RootState, AppDispatch } from '../redux/store';
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from 'react-beautiful-dnd';
+import { TaskStatuses } from '../constants/TaskStatuses.enum';
+import Column from './Column';
+import reorder from '../helpers/reorder';
 
 type Columns = {
   [key in TaskStatuses]: Task[];
@@ -22,41 +20,41 @@ const TaskBoard = () => {
   );
   const { statuses } = useSelector((state: RootState) => state.statuses);
 
-  const [columns, setColumns] = useState<Columns>(() => {
-    return Object.values(TaskStatuses).reduce<Columns>((acc, status) => {
+  const [columns, setColumns] = useState<Columns>(
+    Object.values(TaskStatuses).reduce<Columns>((acc, status) => {
       acc[status] = [];
       return acc;
-    }, {} as Columns);
-  });
+    }, {} as Columns)
+  );
 
   useEffect(() => {
     const fetchAndPopulateTasks = async () => {
-      await dispatch(fetchTasks());
-      await dispatch(fetchStatuses());
+      await Promise.all([dispatch(fetchTasks()), dispatch(fetchStatuses())]);
     };
     fetchAndPopulateTasks();
   }, [dispatch]);
 
-  useEffect(() => {
-    const newColumns: Columns = statuses.reduce<Columns>((acc, status) => {
+  const memoizedColumns = useMemo(() => {
+    return statuses.reduce<Columns>((acc, status) => {
       acc[status.name as TaskStatuses] = tasks.filter(
         (task) => task.status === status.name
       );
       return acc;
     }, {} as Columns);
-
-    setColumns(newColumns);
   }, [tasks, statuses]);
 
-  const reorder = (
-    list: Task[],
-    startIndex: number,
-    endIndex: number
-  ): Task[] => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
+  useEffect(() => {
+    setColumns(memoizedColumns);
+  }, [memoizedColumns]);
+
+  const updateTaskOrder = async (tasks: Task[], status: TaskStatuses) => {
+    await Promise.all(
+      tasks.map((task, index) =>
+        dispatch(
+          updateTaskStatus({ id: task.id, status: status, order: index })
+        )
+      )
+    );
   };
 
   const handleOnDragEnd = async (result: DropResult) => {
@@ -67,138 +65,75 @@ const TaskBoard = () => {
     const sourceStatus = source.droppableId as TaskStatuses;
     const destStatus = destination.droppableId as TaskStatuses;
 
-    if (source.droppableId === destination.droppableId) {
+    const newColumns = { ...columns };
+
+    if (sourceStatus === destStatus) {
+      // Reorder within the same column
       const reorderedTasks = reorder(
-        columns[sourceStatus],
+        newColumns[sourceStatus],
         source.index,
         destination.index
       );
 
-      const updatedTasks = reorderedTasks.map((task, index) => ({
+      newColumns[sourceStatus] = reorderedTasks.map((task, index) => ({
         ...task,
         order: index,
       }));
 
-      setColumns((prevColumns) => ({
-        ...prevColumns,
-        [sourceStatus]: updatedTasks,
-      }));
-
-      await Promise.all(
-        updatedTasks.map((task) =>
-          dispatch(
-            updateTaskStatus({
-              id: task.id,
-              status: sourceStatus,
-              order: task.order,
-            })
-          )
-        )
-      );
+      setColumns(newColumns);
+      await updateTaskOrder(reorderedTasks, sourceStatus);
     } else {
-      const sourceTasks = Array.from(columns[sourceStatus]);
-      const destTasks = Array.from(columns[destStatus]);
+      // Move task to a different column
+      const sourceTasks = Array.from(newColumns[sourceStatus]);
+      const destTasks = Array.from(newColumns[destStatus]);
+      const movedTask = { ...sourceTasks[source.index], status: destStatus };
 
-      const [movedTask] = sourceTasks.splice(source.index, 1);
-      movedTask.status = destStatus;
-      movedTask.order = destTasks.length;
-
+      sourceTasks.splice(source.index, 1);
       destTasks.splice(destination.index, 0, movedTask);
 
-      const updatedSourceTasks = sourceTasks.map((task, index) => ({
+      newColumns[sourceStatus] = sourceTasks.map((task, index) => ({
+        ...task,
+        order: index,
+      }));
+      newColumns[destStatus] = destTasks.map((task, index) => ({
         ...task,
         order: index,
       }));
 
-      const updatedDestTasks = destTasks.map((task, index) => ({
-        ...task,
-        order: index,
-      }));
+      setColumns(newColumns);
 
-      setColumns((prevColumns) => ({
-        ...prevColumns,
-        [sourceStatus]: updatedSourceTasks,
-        [destStatus]: updatedDestTasks,
-      }));
-
-      // Update the status and order in the backend
+      // Update the status and order for the moved task
       await Promise.all([
         dispatch(
           updateTaskStatus({
             id: movedTask.id,
             status: destStatus,
-            order: movedTask.order,
+            order: destination.index,
           })
         ),
+        updateTaskOrder(destTasks, destStatus),
       ]);
     }
+
+    await dispatch(fetchTasks());
   };
 
-  if (loadingStatus === 'failed') return <p>Failed to load tasks.</p>;
-  if (loadingStatus === 'loading') return <p>Loading...</p>;
+  if (loadingStatus === 'failed')
+    return <p className="info-msg">Failed to load tasks.</p>;
+
+  if (loadingStatus === 'loading')
+    return <p className="info-msg">Loading...</p>;
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'nowrap',
-          justifyContent: 'space-between',
-          gap: '10px',
-        }}
-      >
-        {statuses.map((status) => {
-          const statusTasks = columns[status.name as TaskStatuses] || [];
-
-          return (
-            <Droppable droppableId={status.name} key={status.id}>
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  style={{
-                    width: '30%',
-                    marginBottom: '20px',
-                    padding: '10px',
-                    background: '#f4f4f4',
-                  }}
-                >
-                  <h3>{status.name}</h3>
-                  {statusTasks.length === 0 ? (
-                    <p>No tasks here</p>
-                  ) : (
-                    statusTasks.map((task, index) => (
-                      <Draggable
-                        key={task.id}
-                        draggableId={task.id.toString()}
-                        index={index}
-                      >
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            style={{
-                              userSelect: 'none',
-                              padding: 16,
-                              margin: '0 0 8px 0',
-                              background: '#fff',
-                              cursor: 'pointer',
-                              ...provided.draggableProps.style,
-                            }}
-                          >
-                            {task.title}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))
-                  )}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          );
-        })}
+      <div className="column-wrapper">
+        {statuses.map((status) => (
+          <Column
+            key={status.id}
+            status={status}
+            tasks={columns[status.name as TaskStatuses] || []}
+          />
+        ))}
       </div>
     </DragDropContext>
   );

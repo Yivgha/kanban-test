@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { TaskStatuses } from '../../constants/TaskStatuses.enum';
+import { fetchTasks, updateTaskStatus } from '../../api/tasks';
 
 export interface Task {
   id: number;
@@ -18,38 +19,6 @@ const initialState: TaskState = {
   tasks: [],
   loadingStatus: 'idle',
 };
-
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
-  const url = process.env.REACT_APP_BACKEND_URL;
-  const response = await fetch(`${url}/tasks`);
-  return (await response.json()) as Task[];
-});
-
-export const updateTaskStatus = createAsyncThunk(
-  'tasks/updateTaskStatus',
-  async ({
-    id,
-    status,
-    order,
-  }: {
-    id: number;
-    status: TaskStatuses;
-    order: number;
-  }) => {
-    const url = process.env.REACT_APP_BACKEND_URL;
-    const response = await fetch(`${url}/tasks/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status, order }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update task status');
-    }
-    return { id, status, order };
-  }
-);
 
 const taskSlice = createSlice({
   name: 'tasks',

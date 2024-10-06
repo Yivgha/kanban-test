@@ -163,8 +163,14 @@ const TaskBoard = () => {
     }
   };
 
-  const handleKanbanSearch = (kanbanId: string) => {
+  const handleKanbanID = (kanbanId: string) => {
     setSelectedKanbanId(kanbanId);
+  };
+
+  const handleKanbanDelete = async () => {
+    setSelectedKanbanId(null);
+    await dispatch(fetchKanbans());
+    await dispatch(fetchTasks(null));
   };
 
   if (loadingStatus === 'failed')
@@ -175,12 +181,16 @@ const TaskBoard = () => {
 
   return (
     <>
-      <SearchBar onKanbanSearch={handleKanbanSearch} />
+      <SearchBar
+        onKanbanSearch={handleKanbanID}
+        setKanbanId={handleKanbanID}
+        onDeleteKanban={handleKanbanDelete}
+      />
       <div className="kanban-head-box">
         <KanbanSelect
           kanbans={kanbans}
           selectedKanbanId={selectedKanbanId}
-          onKanbanChange={handleKanbanSearch}
+          onKanbanChange={handleKanbanID}
         />
         {selectedKanbanId && <div>Kanban ID: {selectedKanbanId}</div>}
       </div>

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { debounce } from '../helpers/debounce';
+import KanbanActions from './KanbanActions';
 
-const SearchBar = ({ onKanbanSearch }) => {
+const SearchBar = ({ onKanbanSearch, setKanbanId, onDeleteKanban }) => {
   const [searchValue, setSearchValue] = useState('');
 
   const handleSearchValueChange = debounce((value) => {
@@ -34,6 +35,10 @@ const SearchBar = ({ onKanbanSearch }) => {
           <FontAwesomeIcon icon={faSearch} className="search-icon" />
         </button>
       </form>
+      <KanbanActions
+        setKanbanId={setKanbanId}
+        onDeleteKanban={onDeleteKanban}
+      />
     </div>
   );
 };

@@ -3,7 +3,13 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import { Task } from '../redux/slices/taskSlice';
 import { fetchStatuses } from '../redux/slices/statusSlice';
-import { fetchTasks, updateTaskStatus } from '../api/tasks';
+import {
+  fetchTasks,
+  updateTaskStatus,
+  createTask,
+  deleteTask,
+  editTask,
+} from '../api/tasks';
 import { RootState, AppDispatch } from '../redux/store';
 import { TaskStatuses } from '../constants/TaskStatuses.enum';
 import Column from './Column';
@@ -27,6 +33,10 @@ const TaskBoard = () => {
     }, {} as Columns)
   );
 
+  const [newTaskTitle, setNewTaskTitle] = useState<string>('');
+  const [newTaskDescription, setNewTaskDescription] = useState<string>('');
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+
   useEffect(() => {
     const fetchAndPopulateTasks = async () => {
       await Promise.all([dispatch(fetchTasks()), dispatch(fetchStatuses())]);
@@ -36,9 +46,9 @@ const TaskBoard = () => {
 
   const memoizedColumns = useMemo(() => {
     return statuses.reduce<Columns>((acc, status) => {
-      acc[status.name as TaskStatuses] = tasks.filter(
-        (task) => task.status === status.name
-      );
+      acc[status.name as TaskStatuses] = tasks
+        .filter((task) => task.status === status.name)
+        .sort((a, b) => a.order - b.order);
       return acc;
     }, {} as Columns);
   }, [tasks, statuses]);
@@ -118,6 +128,57 @@ const TaskBoard = () => {
     await dispatch(fetchTasks());
   };
 
+  const handleTaskSubmit = async (status: TaskStatuses) => {
+    if (newTaskTitle.trim() === '' || newTaskDescription.trim() === '') {
+      return;
+    }
+
+    if (editingTaskId !== null) {
+      const updatedTask: Task = {
+        id: editingTaskId,
+        title: newTaskTitle,
+        description: newTaskDescription,
+        status:
+          tasks.find((task) => task.id === editingTaskId)?.status ||
+          TaskStatuses.TODO,
+      };
+
+      await dispatch(editTask(updatedTask));
+
+      setEditingTaskId(null);
+    } else {
+      const newTask: Omit<Task, 'id'> = {
+        title: newTaskTitle,
+        description: newTaskDescription,
+        status,
+        order: 0,
+      };
+
+      await dispatch(createTask(newTask));
+    }
+
+    setNewTaskTitle('');
+    setNewTaskDescription('');
+  };
+
+  const handleEditTask = (id: number) => {
+    const taskToEdit = tasks.find((task) => task.id === id);
+    if (taskToEdit) {
+      setNewTaskTitle(taskToEdit.title);
+      setNewTaskDescription(taskToEdit.description);
+      setEditingTaskId(id);
+    }
+  };
+
+  const handleDeleteTask = async (id: number) => {
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this task?'
+    );
+    if (confirmDelete) {
+      await dispatch(deleteTask(id));
+    }
+  };
+
   if (loadingStatus === 'failed')
     return <p className="info-msg">Failed to load tasks.</p>;
 
@@ -132,6 +193,15 @@ const TaskBoard = () => {
             key={status.id}
             status={status}
             tasks={columns[status.name as TaskStatuses] || []}
+            onTaskSubmit={handleTaskSubmit}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+            newTaskTitle={newTaskTitle}
+            setNewTaskTitle={setNewTaskTitle}
+            newTaskDescription={newTaskDescription}
+            setNewTaskDescription={setNewTaskDescription}
+            editingTaskId={editingTaskId}
+            setEditingTaskId={setEditingTaskId}
           />
         ))}
       </div>

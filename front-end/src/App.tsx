@@ -1,4 +1,4 @@
-import TaskBoard from './components/TaskList';
+import TaskBoard from './components/TaskBoard';
 import './index.css';
 
 function App() {

@@ -16,7 +16,7 @@ import { TaskStatuses } from '../constants/TaskStatuses.enum';
 import Column from './Column';
 import reorder from '../helpers/reorder';
 import KanbanSelect from './KanbanSelect';
-import { faDisplay } from '@fortawesome/free-solid-svg-icons';
+import SearchBar from './SearchBar';
 
 type Columns = {
   [key in TaskStatuses]: Task[];
@@ -163,7 +163,7 @@ const TaskBoard = () => {
     }
   };
 
-  const handleKanbanChange = (kanbanId: string) => {
+  const handleKanbanSearch = (kanbanId: string) => {
     setSelectedKanbanId(kanbanId);
   };
 
@@ -175,11 +175,12 @@ const TaskBoard = () => {
 
   return (
     <>
+      <SearchBar onKanbanSearch={handleKanbanSearch} />
       <div className="kanban-head-box">
         <KanbanSelect
           kanbans={kanbans}
           selectedKanbanId={selectedKanbanId}
-          onKanbanChange={handleKanbanChange}
+          onKanbanChange={handleKanbanSearch}
         />
         {selectedKanbanId && <div>Kanban ID: {selectedKanbanId}</div>}
       </div>

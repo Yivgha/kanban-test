@@ -1,3 +1,31 @@
+.search-bar-wrapper {
+  margin: 20px 0;
+  height: 50px;
+  width: 100%;
+  padding: 0 20px;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+}
+
+.search-form-input {
+  margin-right: 8px;
+}
+.search-form-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .kanban-head-box {
   display: flex;
   flex-direction: row;

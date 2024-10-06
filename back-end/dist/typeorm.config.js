@@ -14,6 +14,7 @@ const typeorm_1 = require('typeorm');
 const dotenv_1 = __importDefault(require('dotenv'));
 const Task_1 = require('./src/entities/Task');
 const TaskStatus_1 = require('./src/entities/TaskStatus');
+const Kanban_1 = require('./src/entities/Kanban');
 dotenv_1.default.config({ path: '../.env' });
 exports.baseDataSourceConfig = {
   type: 'postgres',
@@ -23,7 +24,7 @@ exports.baseDataSourceConfig = {
   password: process.env.PGPASSWORD,
   database: process.env.PGDATABASE,
   synchronize: false,
-  entities: [Task_1.Task, TaskStatus_1.Status],
+  entities: [Kanban_1.Kanban, Task_1.Task, TaskStatus_1.Status],
   migrations: ['dist/src/migrations/*.js'],
 };
 // Create the DataSource instance that will be exported for migrations

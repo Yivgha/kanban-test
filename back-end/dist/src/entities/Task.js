@@ -28,6 +28,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 exports.Task = void 0;
 const typeorm_1 = require('typeorm');
 const TaskStatus_enum_1 = require('../enums/TaskStatus.enum');
+const Kanban_1 = require('./Kanban');
 let Task = class Task {
   constructor(title, description, order) {
     this.title = title;
@@ -81,6 +82,19 @@ __decorate(
   ],
   Task.prototype,
   'order',
+  void 0
+);
+__decorate(
+  [
+    (0, typeorm_1.ManyToOne)(
+      () => Kanban_1.Kanban,
+      (kanban) => kanban.tasks,
+      { onDelete: 'CASCADE' }
+    ),
+    __metadata('design:type', Kanban_1.Kanban),
+  ],
+  Task.prototype,
+  'kanban',
   void 0
 );
 exports.Task = Task = __decorate(

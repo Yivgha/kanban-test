@@ -3,6 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import { Task } from '../redux/slices/taskSlice';
 import { fetchStatuses } from '../redux/slices/statusSlice';
+import { setSelectedKanbanId } from '../redux/slices/selectedKanbanSlice';
 import {
   fetchTasks,
   updateTaskStatus,
@@ -29,12 +30,15 @@ const TaskBoard = () => {
   );
   const { statuses } = useSelector((state: RootState) => state.statuses);
   const { kanbans } = useSelector((state: RootState) => state.kanbans);
+  const selectedKanbanId = useSelector(
+    (state: RootState) => state.selectedKanban.id
+  );
 
-  const [selectedKanbanId, setSelectedKanbanId] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState<string>('');
   const [newTaskDescription, setNewTaskDescription] = useState<string>('');
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
+  // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([dispatch(fetchStatuses()), dispatch(fetchKanbans())]);
@@ -45,6 +49,21 @@ const TaskBoard = () => {
     };
 
     fetchData();
+  }, [dispatch, selectedKanbanId]);
+
+  // Load Kanban ID from local storage
+  useEffect(() => {
+    const storedKanbanId = localStorage.getItem('selectedKanbanId');
+    if (storedKanbanId) {
+      dispatch(setSelectedKanbanId(storedKanbanId));
+    }
+  }, [dispatch]);
+
+  // Update tasks based on selected Kanban
+  useEffect(() => {
+    if (selectedKanbanId) {
+      dispatch(fetchTasks(selectedKanbanId));
+    }
   }, [dispatch, selectedKanbanId]);
 
   const memoizedColumns = useMemo(() => {
@@ -82,12 +101,10 @@ const TaskBoard = () => {
         source.index,
         destination.index
       );
-
       newColumns[sourceStatus] = reorderedTasks.map((task, index) => ({
         ...task,
         order: index,
       }));
-
       await updateTaskOrder(reorderedTasks, sourceStatus);
     } else {
       const sourceTasks = Array.from(newColumns[sourceStatus]);
@@ -164,11 +181,19 @@ const TaskBoard = () => {
   };
 
   const handleKanbanID = (kanbanId: string) => {
-    setSelectedKanbanId(kanbanId);
+    dispatch(setSelectedKanbanId(kanbanId));
+    localStorage.setItem('selectedKanbanId', kanbanId);
+
+    if (!kanbanId) {
+      dispatch(fetchTasks(null));
+    } else {
+      dispatch(fetchTasks(kanbanId));
+    }
   };
 
   const handleKanbanDelete = async () => {
-    setSelectedKanbanId(null);
+    dispatch(setSelectedKanbanId(null));
+    localStorage.removeItem('selectedKanbanId');
     await dispatch(fetchKanbans());
     await dispatch(fetchTasks(null));
   };

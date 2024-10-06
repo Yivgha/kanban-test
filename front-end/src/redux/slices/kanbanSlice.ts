@@ -54,17 +54,17 @@ const kanbanSlice = createSlice({
       })
 
       // Handle editKanban
-
       .addCase(editKanban.pending, (state) => {
         state.loadingStatus = 'loading';
       })
       .addCase(editKanban.fulfilled, (state, action) => {
         state.loadingStatus = 'idle';
-        const index = state.kanbans.findIndex(
-          (k) => k.uniqueId === action.payload.uniqueId
+        const updatedKanban = action.payload;
+        const kanbanIndex = state.kanbans.findIndex(
+          (kanban) => kanban.uniqueId === updatedKanban.uniqueId
         );
-        if (index !== -1) {
-          state.kanbans[index] = action.payload;
+        if (kanbanIndex !== -1) {
+          state.kanbans[kanbanIndex] = updatedKanban;
         }
       })
       .addCase(editKanban.rejected, (state) => {
@@ -76,7 +76,6 @@ const kanbanSlice = createSlice({
         state.loadingStatus = 'loading';
       })
       .addCase(deleteKanban.fulfilled, (state, action) => {
-        state.loadingStatus = 'idle';
         state.kanbans = state.kanbans.filter(
           (kanban) => kanban.uniqueId !== action.payload
         );

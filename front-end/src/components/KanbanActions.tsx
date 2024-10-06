@@ -11,7 +11,7 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
   const handleAddKanban = async () => {
     const kanbanName = prompt('Enter Kanban name:');
     if (kanbanName === null) {
-      return; // User canceled, do nothing
+      return;
     }
 
     const properNameCheck = kanbanName.trim() !== '';
@@ -32,7 +32,7 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
   const handleEditKanban = async () => {
     const kanbanId = prompt('Enter Kanban ID to edit:');
     if (kanbanId === null) {
-      return; // User canceled, do nothing
+      return;
     }
 
     const kanbanToEdit = kanbans.find((kanban) => kanban.uniqueId === kanbanId);
@@ -43,7 +43,7 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
 
     const newKanbanName = prompt('Enter new Kanban name:', kanbanToEdit.name);
     if (newKanbanName === null) {
-      return; // User canceled, do nothing
+      return;
     }
 
     if (newKanbanName.trim() === '') {
@@ -52,11 +52,7 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
     }
 
     try {
-      await dispatch(
-        editKanban({ uniqueId: kanbanId, name: newKanbanName })
-      ).unwrap();
-      alert('Kanban edited successfully!'); // Optional success message
-      setKanbanId(kanbanId); // Set the current Kanban ID if needed
+      await dispatch(editKanban({ uniqueId: kanbanId, name: newKanbanName }));
     } catch (error) {
       alert('Failed to edit Kanban. Please try again.');
       console.error(error);
@@ -66,10 +62,14 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
   const handleDeleteKanban = async () => {
     const kanbanId = prompt('Enter Kanban ID to delete:');
     if (kanbanId === null) {
-      return; // User canceled, do nothing
+      return;
     }
 
-    const exists = kanbans.some((kanban) => kanban.uniqueId === kanbanId);
+    const trimmedKanbanId = kanbanId.trim();
+
+    const exists = kanbans.some(
+      (kanban) => kanban.uniqueId === trimmedKanbanId
+    );
     if (!exists) {
       alert('Kanban ID does not exist.');
       return;
@@ -80,7 +80,8 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
     );
     if (confirmDelete) {
       try {
-        await dispatch(deleteKanban(kanbanId));
+        await dispatch(deleteKanban(trimmedKanbanId)).unwrap();
+        alert('Kanban deleted successfully.');
         onDeleteKanban();
       } catch (error) {
         alert('Failed to delete Kanban. Please try again.');
@@ -88,7 +89,6 @@ const KanbanActions = ({ setKanbanId, onDeleteKanban }) => {
       }
     }
   };
-
   return (
     <div className="kanban-actions">
       <button onClick={handleAddKanban} className="kanban-action-btn">

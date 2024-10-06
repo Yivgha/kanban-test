@@ -1,16 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { TaskStatus } from '../enums/TaskStatus.enum';
-
-interface ITask {
-  id?: number;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  order?: number;
-}
+import { Kanban } from './Kanban';
 
 @Entity('Tasks')
-export class Task implements ITask {
+export class Task {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -29,6 +22,10 @@ export class Task implements ITask {
 
   @Column({ type: 'int', nullable: true })
   order?: number;
+
+  // Many tasks belong to one Kanban
+  @ManyToOne(() => Kanban, (kanban) => kanban.tasks, { onDelete: 'CASCADE' })
+  kanban!: Kanban;
 
   constructor(title: string, description?: string, order?: number) {
     this.title = title;

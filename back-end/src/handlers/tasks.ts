@@ -1,14 +1,8 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../../typeorm.config';
 import { Task } from '../entities/Task';
+import { Kanban } from '../entities/Kanban';
 import { TaskStatus } from '../enums/TaskStatus.enum';
-
-interface NewTask {
-  title: string;
-  description?: string;
-  status?: TaskStatus;
-  order?: number;
-}
 
 interface TaskShow {
   id: number;
@@ -16,102 +10,154 @@ interface TaskShow {
   description?: string;
   status: TaskStatus;
   order?: number;
+  kanban: string;
 }
 
-export async function getTasks(req: Request, res: Response) {
+export async function getTasks(req: Request, res: Response): Promise<void> {
   try {
-    const tasks: TaskShow[] = await AppDataSource.getRepository(Task).find();
-    res.status(200).json(tasks);
+    const kanbanId = req.query.kanban as string;
+
+    const options = {
+      relations: ['kanban'],
+      where: kanbanId ? { kanban: { uniqueId: kanbanId } } : undefined,
+    };
+
+    const tasks: Task[] = await AppDataSource.getRepository(Task).find(options);
+
+    const taskResponses: TaskShow[] = tasks.map((task) => ({
+      ...task,
+      kanban: task.kanban.uniqueId,
+    }));
+
+    res.status(200).json(taskResponses);
   } catch (error) {
     console.error('Error fetching tasks:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-export async function getTaskById(req: Request, res: Response) {
+export async function getTaskById(req: Request, res: Response): Promise<void> {
   try {
     const taskId = Number(req.params.id);
 
-    const task: TaskShow | null = await AppDataSource.getRepository(
-      Task
-    ).findOneBy({
-      id: taskId,
+    const task = await AppDataSource.getRepository(Task).findOne({
+      where: { id: taskId },
+      relations: ['kanban'],
     });
 
     if (!task) {
       res.status(404).json({ error: 'Task not found' });
+      return;
     }
 
-    res.status(200).json(task);
+    const taskResponse: TaskShow = {
+      ...task,
+      kanban: task.kanban.uniqueId,
+    };
+
+    res.status(200).json(taskResponse);
   } catch (error) {
     console.error(`Error fetching task by id ${req.params.id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-export async function createTask(req: Request, res: Response) {
+export async function createTask(req: Request, res: Response): Promise<void> {
   try {
-    const { title, description, status, order } = req.body;
+    const { title, description, status, order, kanbanId } = req.body;
 
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    if (!kanbanId) {
+      res.status(400).json({ error: 'Kanban ID is required' });
+      return;
+    }
+
+    const kanbanRepository = AppDataSource.getRepository(Kanban);
+    const kanban = await kanbanRepository.findOne({
+      where: { uniqueId: kanbanId },
+    });
+
+    if (!kanban) {
+      res.status(404).json({ error: 'Kanban not found' });
+      return;
     }
 
     const taskRepository = AppDataSource.getRepository(Task);
-    const createdTask: NewTask = taskRepository.create({
+    const createdTask = taskRepository.create({
       title,
       description,
       status,
       order,
+      kanban: kanban,
     });
-    const result: TaskShow = await taskRepository.save(createdTask);
 
-    res.status(201).json(result);
+    const result = await taskRepository.save(createdTask);
+
+    const taskResponse: TaskShow = {
+      ...result,
+      kanban: result.kanban.uniqueId,
+    };
+
+    res.status(201).json(taskResponse);
   } catch (error) {
     console.error('Error creating task:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-export async function editTask(req: Request, res: Response) {
+export async function editTask(req: Request, res: Response): Promise<void> {
   try {
     const taskId: number = Number(req.params.id);
 
     if (!taskId) {
       res.status(400).json({ error: 'Id is required' });
-    }
-
-    const task: Task | null = await AppDataSource.getRepository(Task).findOneBy(
-      {
-        id: taskId,
-      }
-    );
-
-    if (!task) {
-      res.status(404).json({ error: `Task with id ${taskId} not found` });
-    }
-
-    if (task == null) {
       return;
     }
 
-    const { id, ...taskUpdates } = req.body;
+    const taskRepository = AppDataSource.getRepository(Task);
+    const task = await taskRepository.findOne({ where: { id: taskId } });
 
-    const updatedTask: Task = AppDataSource.getRepository(Task).merge(
-      task,
-      taskUpdates
-    );
-    const result: Task =
-      await AppDataSource.getRepository(Task).save(updatedTask);
+    if (!task) {
+      res.status(404).json({ error: `Task with id ${taskId} not found` });
+      return;
+    }
 
-    res.status(200).json(result);
+    const { kanbanId, ...taskUpdates } = req.body;
+
+    if (kanbanId) {
+      const kanbanRepository = AppDataSource.getRepository(Kanban);
+      const kanban = await kanbanRepository.findOne({
+        where: { uniqueId: kanbanId },
+      });
+
+      if (!kanban) {
+        res.status(404).json({ error: 'Kanban not found' });
+        return;
+      }
+
+      task.kanban = kanban;
+    }
+
+    const updatedTask = taskRepository.merge(task, taskUpdates);
+    const result = await taskRepository.save(updatedTask);
+
+    const taskResponse: TaskShow = {
+      ...result,
+      kanban: result.kanban.uniqueId,
+    };
+
+    res.status(200).json(taskResponse);
   } catch (error) {
     console.error('Error editing task:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-export async function deleteTask(req: Request, res: Response) {
+export async function deleteTask(req: Request, res: Response): Promise<void> {
   try {
     await AppDataSource.getRepository(Task).delete(req.params.id);
 

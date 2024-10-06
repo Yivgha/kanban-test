@@ -9,7 +9,7 @@
     "dev": "nodemon",
     "serve": "concurrently \"npm run watch\" \"npm run dev\"",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate -d ./dist/typeorm.config.js",
+    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate -d dist/typeorm.config.js",
     "migration:run": "npx typeorm-ts-node-commonjs migration:run -d ./dist/typeorm.config.js"
   },
   "keywords": [],
@@ -24,12 +24,14 @@
     "nodemon": "^3.1.7",
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.4",
+    "@types/uuid": "^10.0.0",
     "concurrently": "^9.0.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0"

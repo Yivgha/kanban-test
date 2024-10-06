@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { initializeAppDataSource, runMigrations } from './typeorm.config';
 import tasksRouter from './src/routes/tasks';
 import taskStatusesRouter from './src/routes/taskStatuses';
+import kanbanRouter from './src/routes/kanbans';
 
 dotenv.config({ path: '../.env' });
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/api/tasks', tasksRouter);
 app.use('/api/statuses', taskStatusesRouter);
+app.use('/api/kanbans', kanbanRouter);
 
 async function startServer(): Promise<void> {
   await initializeAppDataSource();
@@ -34,5 +36,5 @@ async function startServer(): Promise<void> {
 startServer();
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, world! Test 1.1.13');
+  res.send('Hello, world! Test 1.1.14');
 });

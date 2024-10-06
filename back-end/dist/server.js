@@ -11,6 +11,7 @@ const dotenv_1 = __importDefault(require('dotenv'));
 const typeorm_config_1 = require('./typeorm.config');
 const tasks_1 = __importDefault(require('./src/routes/tasks'));
 const taskStatuses_1 = __importDefault(require('./src/routes/taskStatuses'));
+const kanbans_1 = __importDefault(require('./src/routes/kanbans'));
 dotenv_1.default.config({ path: '../.env' });
 const app = (0, express_1.default)();
 app.use(
@@ -22,6 +23,7 @@ app.use(
 app.use(express_1.default.json());
 app.use('/api/tasks', tasks_1.default);
 app.use('/api/statuses', taskStatuses_1.default);
+app.use('/api/kanbans', kanbans_1.default);
 async function startServer() {
   await (0, typeorm_config_1.initializeAppDataSource)();
   await (0, typeorm_config_1.runMigrations)();

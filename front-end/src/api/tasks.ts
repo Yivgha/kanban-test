@@ -4,15 +4,19 @@ import { Task } from '../redux/slices/taskSlice';
 
 const url = process.env.REACT_APP_BACKEND_URL;
 
-const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
-  const response = await fetch(`${url}/tasks`);
+const fetchTasks = createAsyncThunk(
+  'tasks/fetchTasks',
+  async (kanbanId: string) => {
+    const response = await fetch(`${url}/tasks?kanban=${kanbanId}`);
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch tasks');
+    if (!response.ok) {
+      throw new Error('Failed to fetch tasks');
+    }
+
+    const tasks = (await response.json()) as Task[];
+    return tasks;
   }
-
-  return (await response.json()) as Task[];
-});
+);
 
 const updateTaskStatus = createAsyncThunk(
   'tasks/updateTaskStatus',

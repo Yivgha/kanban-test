@@ -135,7 +135,7 @@ export async function editTask(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function deleteTask(req: Request, res: Response) {
+export async function deleteTask(req: Request, res: Response): Promise<void> {
   try {
     await AppDataSource.getRepository(Task).delete(req.params.id);
 

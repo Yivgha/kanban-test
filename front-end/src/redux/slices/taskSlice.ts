@@ -14,6 +14,7 @@ export interface Task {
   description: string;
   status: TaskStatuses;
   order?: number;
+  kanbanId: string;
 }
 
 interface TaskState {

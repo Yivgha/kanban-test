@@ -10,14 +10,17 @@ const Task_1 = require('../entities/Task');
 const Kanban_1 = require('../entities/Kanban');
 async function getTasks(req, res) {
   try {
+    const kanbanId = req.query.kanban;
+    const options = {
+      relations: ['kanban'],
+      where: kanbanId ? { kanban: { uniqueId: kanbanId } } : undefined,
+    };
     const tasks = await typeorm_config_1.AppDataSource.getRepository(
       Task_1.Task
-    ).find({
-      relations: ['kanban'],
-    });
+    ).find(options);
     const taskResponses = tasks.map((task) => ({
       ...task,
-      kanban: task.kanban ? task.kanban.id : null,
+      kanban: task.kanban.uniqueId,
     }));
     res.status(200).json(taskResponses);
   } catch (error) {
@@ -40,7 +43,7 @@ async function getTaskById(req, res) {
     }
     const taskResponse = {
       ...task,
-      kanban: task.kanban ? task.kanban.id : null,
+      kanban: task.kanban.uniqueId,
     };
     res.status(200).json(taskResponse);
   } catch (error) {
@@ -62,7 +65,9 @@ async function createTask(req, res) {
     const kanbanRepository = typeorm_config_1.AppDataSource.getRepository(
       Kanban_1.Kanban
     );
-    const kanban = await kanbanRepository.findOne({ where: { id: kanbanId } });
+    const kanban = await kanbanRepository.findOne({
+      where: { uniqueId: kanbanId },
+    });
     if (!kanban) {
       res.status(404).json({ error: 'Kanban not found' });
       return;
@@ -80,7 +85,7 @@ async function createTask(req, res) {
     const result = await taskRepository.save(createdTask);
     const taskResponse = {
       ...result,
-      kanban: result.kanban ? result.kanban.id : null,
+      kanban: result.kanban.uniqueId,
     };
     res.status(201).json(taskResponse);
   } catch (error) {
@@ -103,12 +108,25 @@ async function editTask(req, res) {
       res.status(404).json({ error: `Task with id ${taskId} not found` });
       return;
     }
-    const { id, ...taskUpdates } = req.body;
+    const { kanbanId, ...taskUpdates } = req.body;
+    if (kanbanId) {
+      const kanbanRepository = typeorm_config_1.AppDataSource.getRepository(
+        Kanban_1.Kanban
+      );
+      const kanban = await kanbanRepository.findOne({
+        where: { uniqueId: kanbanId },
+      });
+      if (!kanban) {
+        res.status(404).json({ error: 'Kanban not found' });
+        return;
+      }
+      task.kanban = kanban;
+    }
     const updatedTask = taskRepository.merge(task, taskUpdates);
     const result = await taskRepository.save(updatedTask);
     const taskResponse = {
       ...result,
-      kanban: result.kanban ? result.kanban.id : null,
+      kanban: result.kanban.uniqueId,
     };
     res.status(200).json(taskResponse);
   } catch (error) {

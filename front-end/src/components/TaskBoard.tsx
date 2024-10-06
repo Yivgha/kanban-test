@@ -10,10 +10,13 @@ import {
   deleteTask,
   editTask,
 } from '../api/tasks';
+import { fetchKanbans } from '../api/kanbans';
 import { RootState, AppDispatch } from '../redux/store';
 import { TaskStatuses } from '../constants/TaskStatuses.enum';
 import Column from './Column';
 import reorder from '../helpers/reorder';
+import KanbanSelect from './KanbanSelect';
+import { faDisplay } from '@fortawesome/free-solid-svg-icons';
 
 type Columns = {
   [key in TaskStatuses]: Task[];
@@ -25,37 +28,33 @@ const TaskBoard = () => {
     (state: RootState) => state.tasks
   );
   const { statuses } = useSelector((state: RootState) => state.statuses);
+  const { kanbans } = useSelector((state: RootState) => state.kanbans);
 
-  const [columns, setColumns] = useState<Columns>(
-    Object.values(TaskStatuses).reduce<Columns>((acc, status) => {
-      acc[status] = [];
-      return acc;
-    }, {} as Columns)
-  );
-
+  const [selectedKanbanId, setSelectedKanbanId] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState<string>('');
   const [newTaskDescription, setNewTaskDescription] = useState<string>('');
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchAndPopulateTasks = async () => {
-      await Promise.all([dispatch(fetchTasks()), dispatch(fetchStatuses())]);
+    const fetchData = async () => {
+      await Promise.all([dispatch(fetchStatuses()), dispatch(fetchKanbans())]);
+
+      if (selectedKanbanId) {
+        await dispatch(fetchTasks(selectedKanbanId));
+      }
     };
-    fetchAndPopulateTasks();
-  }, [dispatch]);
+
+    fetchData();
+  }, [dispatch, selectedKanbanId]);
 
   const memoizedColumns = useMemo(() => {
     return statuses.reduce<Columns>((acc, status) => {
       acc[status.name as TaskStatuses] = tasks
         .filter((task) => task.status === status.name)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       return acc;
     }, {} as Columns);
-  }, [tasks, statuses]);
-
-  useEffect(() => {
-    setColumns(memoizedColumns);
-  }, [memoizedColumns]);
+  }, [tasks, statuses, selectedKanbanId]);
 
   const updateTaskOrder = async (tasks: Task[], status: TaskStatuses) => {
     await Promise.all(
@@ -75,10 +74,9 @@ const TaskBoard = () => {
     const sourceStatus = source.droppableId as TaskStatuses;
     const destStatus = destination.droppableId as TaskStatuses;
 
-    const newColumns = { ...columns };
+    const newColumns = { ...memoizedColumns };
 
     if (sourceStatus === destStatus) {
-      // Reorder within the same column
       const reorderedTasks = reorder(
         newColumns[sourceStatus],
         source.index,
@@ -90,10 +88,8 @@ const TaskBoard = () => {
         order: index,
       }));
 
-      setColumns(newColumns);
       await updateTaskOrder(reorderedTasks, sourceStatus);
     } else {
-      // Move task to a different column
       const sourceTasks = Array.from(newColumns[sourceStatus]);
       const destTasks = Array.from(newColumns[destStatus]);
       const movedTask = { ...sourceTasks[source.index], status: destStatus };
@@ -110,9 +106,6 @@ const TaskBoard = () => {
         order: index,
       }));
 
-      setColumns(newColumns);
-
-      // Update the status and order for the moved task
       await Promise.all([
         dispatch(
           updateTaskStatus({
@@ -125,7 +118,7 @@ const TaskBoard = () => {
       ]);
     }
 
-    await dispatch(fetchTasks());
+    await dispatch(fetchTasks(selectedKanbanId!));
   };
 
   const handleTaskSubmit = async (status: TaskStatuses) => {
@@ -133,28 +126,19 @@ const TaskBoard = () => {
       return;
     }
 
+    const taskPayload: Omit<Task, 'id'> = {
+      title: newTaskTitle,
+      description: newTaskDescription,
+      kanbanId: selectedKanbanId!,
+      status,
+      order: 0,
+    };
+
     if (editingTaskId !== null) {
-      const updatedTask: Task = {
-        id: editingTaskId,
-        title: newTaskTitle,
-        description: newTaskDescription,
-        status:
-          tasks.find((task) => task.id === editingTaskId)?.status ||
-          TaskStatuses.TODO,
-      };
-
-      await dispatch(editTask(updatedTask));
-
+      await dispatch(editTask({ id: editingTaskId, ...taskPayload }));
       setEditingTaskId(null);
     } else {
-      const newTask: Omit<Task, 'id'> = {
-        title: newTaskTitle,
-        description: newTaskDescription,
-        status,
-        order: 0,
-      };
-
-      await dispatch(createTask(newTask));
+      await dispatch(createTask(taskPayload));
     }
 
     setNewTaskTitle('');
@@ -179,6 +163,10 @@ const TaskBoard = () => {
     }
   };
 
+  const handleKanbanChange = (kanbanId: string) => {
+    setSelectedKanbanId(kanbanId);
+  };
+
   if (loadingStatus === 'failed')
     return <p className="info-msg">Failed to load tasks.</p>;
 
@@ -186,26 +174,36 @@ const TaskBoard = () => {
     return <p className="info-msg">Loading...</p>;
 
   return (
-    <DragDropContext onDragEnd={handleOnDragEnd}>
-      <div className="column-wrapper">
-        {statuses.map((status) => (
-          <Column
-            key={status.id}
-            status={status}
-            tasks={columns[status.name as TaskStatuses] || []}
-            onTaskSubmit={handleTaskSubmit}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-            newTaskTitle={newTaskTitle}
-            setNewTaskTitle={setNewTaskTitle}
-            newTaskDescription={newTaskDescription}
-            setNewTaskDescription={setNewTaskDescription}
-            editingTaskId={editingTaskId}
-            setEditingTaskId={setEditingTaskId}
-          />
-        ))}
+    <>
+      <div className="kanban-head-box">
+        <KanbanSelect
+          kanbans={kanbans}
+          selectedKanbanId={selectedKanbanId}
+          onKanbanChange={handleKanbanChange}
+        />
+        {selectedKanbanId && <div>Kanban ID: {selectedKanbanId}</div>}
       </div>
-    </DragDropContext>
+      <DragDropContext onDragEnd={handleOnDragEnd}>
+        <div className="column-wrapper">
+          {statuses.map((status) => (
+            <Column
+              key={status.id}
+              status={status}
+              tasks={memoizedColumns[status.name as TaskStatuses] || []}
+              onTaskSubmit={handleTaskSubmit}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+              newTaskTitle={newTaskTitle}
+              setNewTaskTitle={setNewTaskTitle}
+              newTaskDescription={newTaskDescription}
+              setNewTaskDescription={setNewTaskDescription}
+              editingTaskId={editingTaskId}
+              setEditingTaskId={setEditingTaskId}
+            />
+          ))}
+        </div>
+      </DragDropContext>
+    </>
   );
 };
 

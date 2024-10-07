@@ -29,58 +29,9 @@ exports.baseDataSourceConfig = {
 };
 // Create the DataSource instance that will be exported for migrations
 exports.AppDataSource = new typeorm_1.DataSource(exports.baseDataSourceConfig);
-// Function to check if a database exists
-const checkDatabaseExists = async (dbName) => {
-  const tempDataSource = new typeorm_1.DataSource({
-    ...exports.baseDataSourceConfig,
-    database: 'postgres',
-  });
-  try {
-    await tempDataSource.initialize();
-    const result = await tempDataSource.query(
-      `
-      SELECT 1 FROM pg_database WHERE datname = $1
-    `,
-      [dbName]
-    );
-    return result.length > 0;
-  } catch (error) {
-    console.error(
-      `Error checking database existence: ${error instanceof Error ? error.message : error}`
-    );
-    return false;
-  } finally {
-    await tempDataSource.destroy();
-  }
-};
-const createDBIfNotExists = async (dbName) => {
-  const exists = await checkDatabaseExists(dbName);
-  if (exists) {
-    console.log(`Database "${dbName}" already exists. No action taken.`);
-    return;
-  }
-  const tempDataSource = new typeorm_1.DataSource({
-    ...exports.baseDataSourceConfig,
-    database: 'postgres',
-  });
-  try {
-    await tempDataSource.initialize();
-    console.log('Connected to PostgreSQL server successfully');
-    await tempDataSource.query(`CREATE DATABASE "${dbName}"`);
-    console.log(`Database "${dbName}" created successfully`);
-  } catch (error) {
-    console.error(
-      `Error creating database: ${error instanceof Error ? error.message : error}`
-    );
-    throw error;
-  } finally {
-    await tempDataSource.destroy();
-  }
-};
-// Initialize the AppDataSource after ensuring the database exists
+// Initialize the AppDataSource
 const initializeAppDataSource = async () => {
   try {
-    await createDBIfNotExists(exports.baseDataSourceConfig.database);
     await exports.AppDataSource.initialize();
     console.log('Database connection established successfully');
     return exports.AppDataSource;
@@ -90,6 +41,7 @@ const initializeAppDataSource = async () => {
   }
 };
 exports.initializeAppDataSource = initializeAppDataSource;
+// Run migrations
 const runMigrations = async () => {
   try {
     await exports.AppDataSource.runMigrations();

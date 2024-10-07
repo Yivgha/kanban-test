@@ -25,7 +25,7 @@
 - Save selected table id with localStorage
 - Dockerized back-end and front-end
 
-> This application may be deployed on Google Cloud soon.
+> This application's backend is deployed on Google Cloud and you can reach frontend part on netlify.
 
 ### How working app looks like
 

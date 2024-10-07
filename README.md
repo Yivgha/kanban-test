@@ -49,8 +49,8 @@
 
 What was used to create this application:
 
-- [Node.js]
-- [Express]
+- [Node.js](https://nodejs.org/en)
+- [Express](https://expressjs.com/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [React](https://react.dev/)
 - [PostgreSQL](https://www.postgresql.org/)

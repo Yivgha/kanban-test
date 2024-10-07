@@ -14,9 +14,6 @@ FROM nginx:alpine
 # Copy the build output to NGINX's html directory
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Create a template NGINX config file that listens on the dynamic PORT
-COPY nginx.conf /etc/nginx/nginx.conf
-
 # Expose the port
 EXPOSE 8080
 

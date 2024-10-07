@@ -64,7 +64,7 @@ What was used to create this application:
 
 If you are a developer, you will need [Node.js](https://nodejs.org/) v20+ to run.
 
-Install the dependencies and devDependencies and start the server.
+Install the dependencies and devDependencies, create .env files, download official PostgreSQL and PG_Admin images from Docker, then build back-end container locally and start the server.
 
 ```sh
 cd back-end
@@ -72,7 +72,7 @@ npm run build
 docker-compose up --build
 ```
 
-For frontend magic after server is running:
+To see frontend magic after your server started, navigate into front-end folder and run the code:
 
 ```sh
 cd front-end
